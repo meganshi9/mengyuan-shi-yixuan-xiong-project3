@@ -1,10 +1,22 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { createNewGame } from "../api/api"; 
 import "../styles/PageLayout.css";
 
 function Navbar() {
   const location = useLocation();
-  const { isLoggedIn, logout } = useAuth();
+  const navigate = useNavigate();
+  const { isLoggedIn, user, logout } = useAuth();
+
+  const handleNewGame = async () => {
+    try {
+      const newGame = await createNewGame();
+      localStorage.setItem("currentGameId", newGame.id);
+      navigate("/place-ships");
+    } catch (error) {
+      console.error("Failed to create new game:", error);
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -12,24 +24,28 @@ function Navbar() {
         <h1 className="logo">Battleship</h1>
         <ul className="navLinks">
           <li>
-            <Link
-              to="/"
-              className={location.pathname === "/" ? "active" : ""}
-            >
+            <Link to="/" className={location.pathname === "/" ? "active" : ""}>
               Home
             </Link>
           </li>
 
+          <li>
+            <Link
+              to="/games"
+              className={location.pathname === "/games" ? "active" : ""}
+            >
+              Games
+            </Link>
+          </li>
+
+          {isLoggedIn && (
+            <li>
+              <button onClick={handleNewGame}>Create New Game</button>
+            </li>
+          )}
+
           {isLoggedIn ? (
             <>
-              <li>
-                <Link
-                  to="/games"
-                  className={location.pathname === "/games" ? "active" : ""}
-                >
-                  Games
-                </Link>
-              </li>
               <li>
                 <Link
                   to="/high-scores"
@@ -37,6 +53,9 @@ function Navbar() {
                 >
                   High Scores
                 </Link>
+              </li>
+              <li style={{ color: "white", fontWeight: "bold", padding: "0.5rem" }}>
+                {user?.username}
               </li>
               <li>
                 <button onClick={logout}>Logout</button>
@@ -69,5 +88,4 @@ function Navbar() {
 }
 
 export default Navbar;
-
 

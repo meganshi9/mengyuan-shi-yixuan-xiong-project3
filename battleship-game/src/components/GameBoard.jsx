@@ -1,5 +1,5 @@
 import React from "react";
-import clsx from "clsx"; 
+import clsx from "clsx";
 
 const GameBoard = ({
   boardData,
@@ -12,9 +12,9 @@ const GameBoard = ({
       {boardData.map((row, rowIndex) =>
         row.map((cell, colIndex) => {
           const key = `${rowIndex}-${colIndex}`;
-          const isHit = cell === "hit";
-          const isMiss = cell === "miss";
-          const hasShip = cell === "ship";
+          const isHit = cell === "H";
+          const isMiss = cell === "M";
+          const hasShip = cell === "S";
 
           let cellClass = "w-8 h-8 border bg-blue-200";
 
@@ -29,7 +29,9 @@ const GameBoard = ({
               onClick={() =>
                 isInteractive && onCellClick && onCellClick(rowIndex, colIndex)
               }
-            ></div>
+            >
+              {isHit ? "💥" : isMiss ? "⚪" : ""}
+            </div>
           );
         })
       )}
@@ -38,3 +40,4 @@ const GameBoard = ({
 };
 
 export default GameBoard;
+

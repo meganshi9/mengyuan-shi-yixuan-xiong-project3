@@ -268,4 +268,24 @@
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
+
+  /**Shared Auth Form Input Layout**/
+.formField {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+.formField label {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  text-align: left;
+}
+
+.formField input {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
   

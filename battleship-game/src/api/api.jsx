@@ -1,43 +1,36 @@
 import axios from "axios";
-import { getToken } from "../utils/auth";
 
 const BASE_URL = "http://localhost:5000/api";
 
-
+// Create Axios instance
 const api = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true, 
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-api.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 
 export const loginUser = async (data) => {
-  const res = await api.post("/login", data);
+  const res = await api.post("/login", data); 
   return res.data; 
 };
 
 export const registerUser = async (data) => {
   const res = await api.post("/register", data);
-  return res.data; 
+  return res.data;
 };
 
+// ---- Game APIs ----
 export const fetchGames = async () => {
   const res = await api.get("/games");
-  return res.data; 
+  return res.data;
 };
 
 export const createNewGame = async () => {
   const res = await api.post("/games");
-  return res.data; 
+  return res.data;
 };
 
 export const joinGame = async (gameId) => {
@@ -46,4 +39,5 @@ export const joinGame = async (gameId) => {
 };
 
 export default api;
+
 

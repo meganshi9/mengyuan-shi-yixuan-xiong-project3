@@ -5,16 +5,14 @@ import { useGameContext } from "../contexts/GameContext";
 import "../styles/PageLayout.css";
 
 function GamePage() {
-  const { isLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn, user } = useContext(AuthContext);
   const {
     playerBoard,
     aiBoard,
     currentTurn,
-    timer,
     gameOver,
     winner,
     handlePlayerMove,
-    resetGame,
   } = useGameContext();
 
   const navigate = useNavigate();
@@ -39,9 +37,29 @@ function GamePage() {
       <h2 className="title">
         {gameOver ? `Game Over! ${winner} Won!` : `Current Turn: ${currentTurn}`}
       </h2>
-      <p className="timer">Time: {timer}s</p>
 
       <div className="boards">
+        <div>
+          <h3>Opponent's Board</h3>
+          <div className="board">
+            {aiBoard.map((row, rowIndex) =>
+              row.map((cell, colIndex) => (
+                <div
+                  key={`ai-${rowIndex}-${colIndex}`}
+                  className={`tile ${
+                    cell === "H" ? "hit" : cell === "M" ? "miss" : ""
+                  }`}
+                  onClick={() =>
+                    isLoggedIn && !gameOver && handlePlayerMove(rowIndex, colIndex)
+                  }
+                >
+                  {cell === "H" ? "💥" : cell === "M" ? "⚪" : ""}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         <div>
           <h3>Your Board</h3>
           <div className="board">
@@ -65,30 +83,7 @@ function GamePage() {
             )}
           </div>
         </div>
-
-        <div>
-          <h3>Opponent's Board</h3>
-          <div className="board">
-            {aiBoard.map((row, rowIndex) =>
-              row.map((cell, colIndex) => (
-                <div
-                  key={`ai-${rowIndex}-${colIndex}`}
-                  className={`tile ${
-                    cell === "H" ? "hit" : cell === "M" ? "miss" : ""
-                  }`}
-                  onClick={() => !gameOver && handlePlayerMove(rowIndex, colIndex)}
-                >
-                  {cell === "H" ? "💥" : cell === "M" ? "⚪" : ""}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
       </div>
-
-      <button className="resetButton" onClick={resetGame}>
-        Reset
-      </button>
     </div>
   );
 }

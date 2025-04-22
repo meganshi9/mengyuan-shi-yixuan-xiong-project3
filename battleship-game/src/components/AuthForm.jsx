@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import "../styles/PageLayout.css"; 
+import "../styles/PageLayout.css";
 
 const AuthForm = ({ mode, onSubmit }) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
+    confirmPassword: "",
   });
 
+  const [error, setError] = useState("");
   const isLogin = mode === "login";
 
   const handleChange = (e) => {
@@ -19,40 +21,71 @@ const AuthForm = ({ mode, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setError("");
+
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    const payload = {
+      username: formData.username,
+      password: formData.password,
+    };
+
+    onSubmit(payload);
   };
 
   return (
     <div className="authFormWrapper">
-      <h2 className="text-2xl font-bold mb-4 text-center">
+      <h2 className="text-2xl font-bold mb-6 text-center">
         {isLogin ? "Login" : "Register"}
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Username</label>
+      <form onSubmit={handleSubmit}>
+        <div className="formField">
+          <label htmlFor="username">Username</label>
           <input
+            id="username"
             name="username"
             type="text"
             required
             value={formData.username}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
             placeholder="Enter your username"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
+        <div className="formField">
+          <label htmlFor="password">Password</label>
           <input
+            id="password"
             name="password"
             type="password"
             required
             value={formData.password}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
             placeholder="Enter your password"
           />
         </div>
+
+        {!isLogin && (
+          <div className="formField">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter your password"
+            />
+          </div>
+        )}
+
+        {error && (
+          <p className="text-red-500 text-sm text-center mb-3">{error}</p>
+        )}
 
         <button
           type="submit"
@@ -66,4 +99,3 @@ const AuthForm = ({ mode, onSubmit }) => {
 };
 
 export default AuthForm;
-

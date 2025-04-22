@@ -5,9 +5,10 @@ import { fetchGames, createNewGame } from "../api/api";
 import "../styles/PageLayout.css";
 
 function GamesPage() {
-  const { isLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn, user } = useContext(AuthContext);
   const [games, setGames] = useState([]);
   const navigate = useNavigate();
+  const currentUsername = user?.username;
 
   useEffect(() => {
     const loadGames = async () => {
@@ -25,9 +26,7 @@ function GamesPage() {
   const handleNewGame = async () => {
     try {
       const newGame = await createNewGame();
-
       localStorage.setItem("currentGameId", newGame.id);
-
       navigate("/place-ships");
     } catch (error) {
       console.error("Failed to create game:", error);
@@ -46,6 +45,51 @@ function GamesPage() {
     );
   }
 
+  // Categorize games
+  const openGames = games.filter(
+    (g) => g.status === "open" && g.host !== currentUsername && !g.players.includes(currentUsername)
+  );
+  const myOpenGames = games.filter(
+    (g) => g.status === "open" && g.host === currentUsername
+  );
+  const myActiveGames = games.filter(
+    (g) => g.status === "active" && g.players.includes(currentUsername)
+  );
+  const myCompletedGames = games.filter(
+    (g) => g.status === "completed" && g.players.includes(currentUsername)
+  );
+  const otherGames = games.filter(
+    (g) => g.status !== "open" && !g.players.includes(currentUsername)
+  );
+
+  const renderGameList = (title, gameList, showJoin = false) => (
+    gameList.length > 0 && (
+      <section className="mt-10">
+        <h3 className="text-xl font-semibold mb-3">{title}</h3>
+        <ul className="space-y-3">
+          {gameList.map((game) => (
+            <li
+              key={game.id}
+              className="flex justify-between items-center bg-white p-4 rounded shadow-md max-w-lg mx-auto"
+            >
+              <span>
+                Game #{game.id} hosted by <strong>{game.host}</strong>
+              </span>
+              {showJoin && (
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  onClick={() => handleJoinGame(game.id)}
+                >
+                  Join
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  );
+
   return (
     <div className="pageContainer">
       <header className="pageHeader">
@@ -56,31 +100,11 @@ function GamesPage() {
         </button>
       </header>
 
-      <section className="mt-10">
-        <h3 className="text-xl font-semibold mb-3">Joinable Games:</h3>
-        {games.length === 0 ? (
-          <p>No available games at the moment.</p>
-        ) : (
-          <ul className="space-y-3">
-            {games.map((game) => (
-              <li
-                key={game.id}
-                className="flex justify-between items-center bg-white p-4 rounded shadow-md max-w-lg mx-auto"
-              >
-                <span>
-                  Game hosted by <strong>{game.host}</strong>
-                </span>
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  onClick={() => handleJoinGame(game.id)}
-                >
-                  Join
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {renderGameList("My Active Games", myActiveGames)}
+      {renderGameList("My Completed Games", myCompletedGames)}
+      {renderGameList("My Open Games", myOpenGames, true)}
+      {renderGameList("Open Games", openGames, true)}
+      {renderGameList("Other Games", otherGames)}
 
       <footer className="pageFooter">
         <p>&copy; 2025 Battleship Game</p>
@@ -90,5 +114,3 @@ function GamesPage() {
 }
 
 export default GamesPage;
-
-

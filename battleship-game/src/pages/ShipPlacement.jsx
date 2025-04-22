@@ -1,15 +1,34 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGameContext } from "../contexts/GameContext";
-import "../styles/PageLayout.css"; 
+import "../styles/PageLayout.css";
 
 function ShipPlacement() {
-  const { playerBoard, shipsToPlace, handleShipDrop, rotateShip } = useGameContext();
+  const {
+    playerBoard,
+    setPlayerBoard,
+    shipsToPlace,
+    handleShipDrop,
+    rotateShip,
+  } = useGameContext();
+
+  const navigate = useNavigate();
+
+  // Check if all ships are placed (assume 5 ships)
+  useEffect(() => {
+    const allShipsPlaced = shipsToPlace.length === 0;
+    const boardReady = playerBoard.flat().filter((cell) => cell === "S").length >= 5;
+    if (allShipsPlaced && boardReady) {
+      // Proceed to game once ships are placed
+      navigate("/game/" + localStorage.getItem("currentGameId"));
+    }
+  }, [shipsToPlace, playerBoard, navigate]);
 
   return (
     <div className="pageContainer">
       <h2 className="title">Place Your Ships</h2>
       <div className="shipPlacementContainer">
-        {/* Left: List of ships to drag */}
+        {/* Ship list */}
         <div className="shipList">
           <h3>Ships to Place</h3>
           {shipsToPlace.length > 0 ? (
@@ -39,11 +58,11 @@ function ShipPlacement() {
               </div>
             ))
           ) : (
-            <p>All ships placed.</p>
+            <p>All ships placed. Redirecting to game...</p>
           )}
         </div>
 
-        {/* Right: Game board */}
+        {/* Game board */}
         <div className="board">
           {playerBoard.map((row, rowIndex) =>
             row.map((cell, colIndex) => (
@@ -58,6 +77,7 @@ function ShipPlacement() {
                   const shipOrientation = e.dataTransfer.getData("shipOrientation");
                   const ship = { id: shipId, size: shipSize, orientation: shipOrientation };
                   handleShipDrop(ship, rowIndex, colIndex);
+                  // No need to call setPlayerBoard here if handleShipDrop updates it internally
                 }}
               ></div>
             ))
@@ -69,3 +89,4 @@ function ShipPlacement() {
 }
 
 export default ShipPlacement;
+

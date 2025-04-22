@@ -1,24 +1,18 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { loginUser, registerUser } from "../api/api";
 
-export const AuthContext = createContext(); 
+export const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("battleshipUser");
-    return stored ? JSON.parse(stored) : null;
-  });
-
+  const [user, setUser] = useState(null);
   const isLoggedIn = !!user;
 
   const login = async ({ username, password }) => {
     try {
       const data = await loginUser({ username, password });
-      const newUser = { username: data.username, token: data.token };
-      setUser(newUser);
-      localStorage.setItem("battleshipUser", JSON.stringify(newUser));
+      setUser(data); 
       return true;
     } catch (error) {
       console.error("Login failed:", error);
@@ -29,9 +23,7 @@ export const AuthProvider = ({ children }) => {
   const register = async ({ username, password }) => {
     try {
       const data = await registerUser({ username, password });
-      const newUser = { username: data.username, token: data.token };
-      setUser(newUser);
-      localStorage.setItem("battleshipUser", JSON.stringify(newUser));
+      setUser(data);
       return true;
     } catch (error) {
       console.error("Register failed:", error);
@@ -41,8 +33,26 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("battleshipUser");
+    // Optionally: call backend logout endpoint
+    // await api.post("/logout");
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch (err) {
+        console.log("Not logged in yet");
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isLoggedIn, login, register, logout }}>

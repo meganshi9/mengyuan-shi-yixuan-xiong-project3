@@ -11,7 +11,7 @@ function RegisterPage() {
   const handleRegister = async (formData) => {
     const success = await register(formData);
     if (success) {
-      navigate("/games");
+      navigate("/"); 
     } else {
       alert("Registration failed. Try a different username.");
     }
@@ -34,3 +34,4 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
+

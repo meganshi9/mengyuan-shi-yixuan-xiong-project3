@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 export const GameContext = createContext();
 export const useGameContext = () => useContext(GameContext);
@@ -11,14 +11,14 @@ export const GameProvider = ({ children }) => {
   const [currentTurn, setCurrentTurn] = useState("Player");
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
-  const [timer, setTimer] = useState(0);
 
-  useEffect(() => {
-    if (!gameOver) {
-      const interval = setInterval(() => setTimer((t) => t + 1), 1000);
-      return () => clearInterval(interval);
-    }
-  }, [gameOver]);
+  const [shipsToPlace, setShipsToPlace] = useState([
+    { id: 1, size: 5, orientation: "horizontal" },
+    { id: 2, size: 4, orientation: "horizontal" },
+    { id: 3, size: 3, orientation: "horizontal" },
+    { id: 4, size: 3, orientation: "horizontal" },
+    { id: 5, size: 2, orientation: "horizontal" },
+  ]);
 
   function createEmptyBoard() {
     return Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(""));
@@ -38,17 +38,58 @@ export const GameProvider = ({ children }) => {
     return board;
   }
 
-  const checkWin = (board) => {
-    return board.every((row) => !row.includes("S"));
+  const rotateShip = (shipId) => {
+    setShipsToPlace((prev) =>
+      prev.map((ship) =>
+        ship.id === shipId
+          ? {
+              ...ship,
+              orientation:
+                ship.orientation === "horizontal" ? "vertical" : "horizontal",
+            }
+          : ship
+      )
+    );
   };
+
+  const handleShipDrop = (ship, row, col) => {
+    const newBoard = playerBoard.map((r) => [...r]);
+
+    const fits = () => {
+      for (let i = 0; i < ship.size; i++) {
+        const r = ship.orientation === "horizontal" ? row : row + i;
+        const c = ship.orientation === "horizontal" ? col + i : col;
+        if (
+          r >= BOARD_SIZE ||
+          c >= BOARD_SIZE ||
+          newBoard[r][c] !== ""
+        ) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    if (!fits()) return;
+
+    for (let i = 0; i < ship.size; i++) {
+      const r = ship.orientation === "horizontal" ? row : row + i;
+      const c = ship.orientation === "horizontal" ? col + i : col;
+      newBoard[r][c] = "S";
+    }
+
+    setPlayerBoard(newBoard);
+    setShipsToPlace((prev) => prev.filter((s) => s.id !== ship.id));
+  };
+
+  const checkWin = (board) => board.every((row) => !row.includes("S"));
 
   const handlePlayerMove = (row, col) => {
     if (gameOver || currentTurn !== "Player") return;
 
     const newBoard = aiBoard.map((r) => [...r]);
     const target = newBoard[row][col];
-
-    if (target === "H" || target === "M") return;
+    if (["H", "M"].includes(target)) return;
 
     newBoard[row][col] = target === "S" ? "H" : "M";
     setAiBoard(newBoard);
@@ -65,7 +106,6 @@ export const GameProvider = ({ children }) => {
   const handleAIMove = () => {
     const newBoard = playerBoard.map((r) => [...r]);
     let row, col;
-
     do {
       row = Math.floor(Math.random() * BOARD_SIZE);
       col = Math.floor(Math.random() * BOARD_SIZE);
@@ -82,30 +122,24 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  const resetGame = () => {
-    setPlayerBoard(createEmptyBoard());
-    setAiBoard(createBoardWithShips());
-    setCurrentTurn("Player");
-    setGameOver(false);
-    setWinner(null);
-    setTimer(0);
-  };
-
   return (
     <GameContext.Provider
       value={{
         playerBoard,
+        setPlayerBoard,
         aiBoard,
         currentTurn,
         gameOver,
         winner,
-        timer,
         handlePlayerMove,
-        resetGame,
+        shipsToPlace,
+        handleShipDrop,
+        rotateShip,
       }}
     >
       {children}
     </GameContext.Provider>
   );
 };
+
 
